@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Penilaian Siswa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #3498db, #8e44ad);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            color: #3498db;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        /* Menghilangkan spinner pada input number */
+        input[type="number"] {
+            -moz-appearance: textfield;
+            max-width: 120px;
+        }
+        
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .rating-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .rating-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        button {
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+        
+        .input-hint {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        /* Gaya untuk ekstrakurikuler */
+        .ekstra-container {
+            margin-bottom: 15px;
+        }
+        
+        .ekstra-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border-radius: 6px;
+            border: 1px solid #d1e7ff;
+        }
+        
+        .ekstra-checkbox {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .ekstra-label {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .partisipasi-select {
+            width: 150px;
+            margin-left: 10px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .rating-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .rating-item {
+                min-width: 100%;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .ekstra-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .partisipasi-select {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Form Penilaian Siswa</h1>
+            <p class="description">Formulir penilaian perkembangan siswa SMP Negeri 23 Balikpapan</p>
+        </div>
+        
+        <form id="evaluationForm">
+            <!-- Data Siswa -->
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-user-graduate"></i> Data Siswa</h2>
+                <div class="form-group">
+                    <label for="nama">Nama Siswa: <span class="required">*</span></label>
+                    <input type="text" id="nama" name="nama" required>
+                </div>
+                <div class="form-group">
+                    <label for="kelas">Kelas: <span class="required">*</span></label>
+                    <select id="kelas" name="kelas" required>
+                        <option value="">Pilih Kelas</option>
+                        <optgroup label="Kelas VII">
+                            <option value="VII-A">VII-A</option>
+                            <option value="VII-B">VII-B</option>
+                            <option value="VII-C">VII-C</option>
+                            <option value="VII-D">VII-D</option>
+                            <option value="VII-E">VII-E</option>
+                            <option value="VII-F">VII-F</option>
+                        </optgroup>
+                        <optgroup label="Kelas VIII">
+                            <option value="VIII-A">VIII-A</option>
+                            <option value="VIII-B">VIII-B</option>
+                            <option value="VIII-C">VIII-C</option>
+                            <option value="VIII-D">VIII-D</option>
+                            <option value="VIII-E">VIII-E</option>
+                            <option value="VIII-F">VIII-F</option>
+                        </optgroup>
+                        <optgroup label="Kelas IX">
+                            <option value="IX-A">IX-A</option>
+                            <option value="IX-B">IX-B</option>
+                            <option value="IX-C">IX-C</option>
+                            <option value="IX-D">IX-D</option>
+                            <option value="IX-E">IX-E</option>
+                            <option value="IX-F">IX-F</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="semester">Semester: <span class="required">*</span></label>
+                    <select id="semester" name="semester" required>
+                        <option value="">Pilih Semester</option>
+                        <option value="1">Semester Ganjil</option>
+                        <option value="2">Semester Genap</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tahunAjaran">Tahun Ajaran: <span class="required">*</span></label>
+                     <select id="tahunAjaran" name="tahunAjaran" required>
+                        <option value="">Pilih Tahun Ajaran</option>
+                        <option value="1">2024/2025</option>
+                        <option value="2">2025/2026</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Perkembangan Akademik -->
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-book"></i> Perkembangan Akademik</h2>
+                <div class="form-group">
+                    <label for="nilai">Nilai Rata-rata: <span class="required">*</span></label>
+                    <input type="number" id="nilai" name="nilai" step="0.01" placeholder="0.00 - 100.00" required>
+                    <p class="input-hint">Masukkan nilai antara 0.00 dan 100.00</p>
+                </div>
+                <div class="form-group">
+                    <label for="tugas">Kualitas Pengerjaan Tugas: <span class="required">*</span></label>
+                    <select id="tugas" name="tugas" required>
+                        <option value="">Pilih Penilaian</option>
+                        <option value="Sangat Baik">Sangat Baik</option>
+                        <option value="Baik">Baik</option>
+                        <option value="Cukup">Cukup</option>
+                        <option value="Perlu Peningkatan">Perlu Peningkatan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="keaktifan">Tingkat Keaktifan di Kelas: <span class="required">*</span></label>
+                    <select id="keaktifan" name="keaktifan" required>
+                        <option value="">Pilih Penilaian</option>
+                        <option value="Sangat Aktif">Sangat Aktif</option>
+                        <option value="Aktif">Aktif</option>
+                        <option value="Cukup Aktif">Cukup Aktif</option>
+                        <option value="Kurang Aktif">Kurang Aktif</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Perilaku dan Sikap -->
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-users"></i> Perilaku dan Sikap</h2>
+                <div class="rating-container">
+                    <div class="rating-item">
+                        <div class="form-group">
+                            <label for="disiplin">Kedisiplinan: <span class="required">*</span></label>
+                            <select id="disiplin" name="disiplin" required>
+                                <option value="">Pilih Penilaian</option>
+                                <option value="Sangat Baik">Sangat Baik</option>
+                                <option value="Baik">Baik</option>
+                                <option value="Cukup">Cukup</option>
+                                <option value="Perlu Peningkatan">Perlu Peningkatan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="rating-item">
+                        <div class="form-group">
+                            <label for="tanggungJawab">Tanggung Jawab: <span class="required">*</span></label>
+                            <select id="tanggungJawab" name="tanggungJawab" required>
+                                <option value="">Pilih Penilaian</option>
+                                <option value="Sangat Baik">Sangat Baik</option>
+                                <option value="Baik">Baik</option>
+                                <option value="Cukup">Cukup</option>
+                                <option value="Perlu Peningkatan">Perlu Peningkatan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="rating-item">
+                        <div class="form-group">
+                            <label for="sopanSantun">Sopan Santun: <span class="required">*</span></label>
+                            <select id="sopanSantun" name="sopanSantun" required>
+                                <option value="">Pilih Penilaian</option>
+                                <option value="Sangat Baik">Sangat Baik</option>
+                                <option value="Baik">Baik</option>
+                                <option value="Cukup">Cukup</option>
+                                <option value="Perlu Peningkatan">Perlu Peningkatan</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Kemampuan Sosial -->
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-handshake"></i> Kemampuan Sosial</h2>
+                <div class="form-group">
+                    <label for="interaksi">Interaksi dengan Teman: <span class="required">*</span></label>
+                    <select id="interaksi" name="interaksi" required>
+                        <option value="">Pilih Penilaian</option>
+                        <option value="Sangat Baik">Sangat Baik - Mudah bergaul dan bekerja sama</option>
+                        <option value="Baik">Baik - Dapat bekerja sama dengan baik</option>
+                        <option value="Cukup">Cukup - Kadang-kadang perlu bimbingan dalam bekerja sama</option>
+                        <option value="Perlu Peningkatan">Perlu Peningkatan - Memerlukan bimbingan dalam interaksi sosial</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Partisipasi Non-Akademik -->
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-futbol"></i> Partisipasi Non-Akademik</h2>
+                <div class="form-group">
+                    <label>Pilih Ekstrakurikuler: <span class="input-hint">(Bisa memilih lebih dari satu)</span></label>
+                    <div class="ekstra-container">
+                        <div class="ekstra-item">
+                            <input type="checkbox" id="ekstra1" class="ekstra-checkbox" name="ekstrakurikuler" value="Pramuka">
+                            <label for="ekstra1" class="ekstra-label">Pramuka</label>
+                            <select class="partisipasi-select" name="partisipasi_pramuka">
+                                <option value="">Tingkat Partisipasi</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Cukup Aktif">Cukup Aktif</option>
+                                <option value="Kurang Aktif">Kurang Aktif</option>
+                            </select>
+                        </div>
+                        
+                        <div class="ekstra-item">
+                            <input type="checkbox" id="ekstra2" class="ekstra-checkbox" name="ekstrakurikuler" value="PMR">
+                            <label for="ekstra2" class="ekstra-label">PMR</label>
+                            <select class="partisipasi-select" name="partisipasi_pmr">
+                                <option value="">Tingkat Partisipasi</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Cukup Aktif">Cukup Aktif</option>
+                                <option value="Kurang Aktif">Kurang Aktif</option>
+                            </select>
+                        </div>
+                        
+                        <div class="ekstra-item">
+                            <input type="checkbox" id="ekstra3" class="ekstra-checkbox" name="ekstrakurikuler" value="Basket">
+                            <label for="ekstra3" class="ekstra-label">Basket</label>
+                            <select class="partisipasi-select" name="partisipasi_basket">
+                                <option value="">Tingkat Partisipasi</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Cukup Aktif">Cukup Aktif</option>
+                                <option value="Kurang Aktif">Kurang Aktif</option>
+                            </select>
+                        </div>
+                        
+                        <div class="ekstra-item">
+                            <input type="checkbox" id="ekstra4" class="ekstra-checkbox" name="ekstrakurikuler" value="Sepak Bola">
+                            <label for="ekstra4" class="ekstra-label">Sepak Bola</label>
+                            <select class="partisipasi-select" name="partisipasi_sepakbola">
+                                <option value="">Tingkat Partisipasi</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Cukup Aktif">Cukup Aktif</option>
+                                <option value="Kurang Aktif">Kurang Aktif</option>
+                            </select>
+                        </div>
+                        
+                        <div class="ekstra-item">
+                            <input type="checkbox" id="ekstra5" class="ekstra-checkbox" name="ekstrakurikuler" value="Voli">
+                            <label for="ekstra5" class="ekstra-label">Voli</label>
+                            <select class="partisipasi-select" name="partisipasi_voli">
+                                <option value="">Tingkat Partisipasi</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Cukup Aktif">Cukup Aktif</option>
+                                <option value="Kurang Aktif">Kurang Aktif</option>
+                            </select>
+                        </div>
+                        
+                        <div class="ekstra-item">
+                            <input type="checkbox" id="ekstra6" class="ekstra-checkbox" name="ekstrakurikuler" value="Paduan Suara">
+                            <label for="ekstra6" class="ekstra-label">Paduan Suara</label>
+                            <select class="partisipasi-select" name="partisipasi_paduansuara">
+                                <option value="">Tingkat Partisipasi</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Cukup Aktif">Cukup Aktif</option>
+                                <option value="Kurang Aktif">Kurang Aktif</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Deskripsi -->
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-edit"></i> Deskripsi</h2>
+                <div class="form-group">
+                    <label for="deskripsi">Deskripsi Umum dan Komentar: <span class="required">*</span></label>
+                    <textarea id="deskripsi" name="deskripsi" placeholder="Tuliskan deskripsi umum perkembangan siswa, pencapaian, dan area yang perlu ditingkatkan" required></textarea>
+                </div>
+            </div>
+            
+            <div class="btn-container">
+                <button type="submit"><i class="fas fa-save"></i> Simpan Penilaian</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('evaluationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validasi sederhana
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value) {
+                    isValid = false;
+                    field.style.borderColor = '#e74c3c';
+                } else {
+                    field.style.borderColor = '#ddd';
+                }
+            });
+            
+            // Validasi khusus untuk nilai rata-rata
+            const nilaiInput = document.getElementById('nilai');
+            const nilai = parseFloat(nilaiInput.value);
+            
+            if (isNaN(nilai) || nilai < 0 || nilai > 100) {
+                isValid = false;
+                nilaiInput.style.borderColor = '#e74c3c';
+                alert('Nilai rata-rata harus berupa angka antara 0 dan 100!');
+            }
+            
+            // Validasi untuk ekstrakurikuler yang dipilih
+            const ekstraChecked = document.querySelectorAll('input[name="ekstrakurikuler"]:checked');
+            ekstraChecked.forEach(checkbox => {
+                const partisipasiSelect = checkbox.parentNode.querySelector('.partisipasi-select');
+                if (!partisipasiSelect.value) {
+                    isValid = false;
+                    partisipasiSelect.style.borderColor = '#e74c3c';
+                    alert('Harap pilih tingkat partisipasi untuk setiap ekstrakurikuler yang dipilih!');
+                }
+            });
+            
+            if (isValid) {
+                alert('Penilaian berhasil disimpan!');
+                // Di aplikasi nyata, di sini akan ada kode untuk mengirim data ke server
+                // this.submit();
+            } else {
+                alert('Harap lengkapi semua field yang wajib diisi dengan benar!');
+            }
+        });
+        
+        // Mencegah input nilai minus
+        document.getElementById('nilai').addEventListener('input', function(e) {
+            if (e.target.value < 0) {
+                e.target.value = 0;
+            }
+            if (e.target.value > 100) {
+                e.target.value = 100;
+            }
+        });
+        
+        // Mencegah input karakter non-angka
+        document.getElementById('nilai').addEventListener('keypress', function(e) {
+            const charCode = (e.which) ? e.which : e.keyCode;
+            // Mengizinkan hanya angka, titik, dan kunci kontrol
+            if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode !== 46) {
+                e.preventDefault();
+            }
+        });
+        
+        // Menampilkan/menyembunyikan select partisipasi berdasarkan checkbox
+        const ekstraCheckboxes = document.querySelectorAll('.ekstra-checkbox');
+        ekstraCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const partisipasiSelect = this.parentNode.querySelector('.partisipasi-select');
+                if (this.checked) {
+                    partisipasiSelect.style.display = 'block';
+                    partisipasiSelect.setAttribute('required', 'true');
+                } else {
+                    partisipasiSelect.style.display = 'none';
+                    partisipasiSelect.removeAttribute('required');
+                    partisipasiSelect.value = '';
+                }
+            });
+        });
+        
+        // Menambahkan efek saat field difokuskan
+        const formFields = document.querySelectorAll('input, select, textarea');
+        formFields.forEach(field => {
+            field.addEventListener('focus', function() {
+                this.style.borderColor = '#3498db';
+            });
+            
+            field.addEventListener('blur', function() {
+                this.style.borderColor = '#ddd';
+            });
+        });
+    </script>
+</body>
+</html>
