@@ -495,8 +495,11 @@
         </form>
     </div>
 
-    <script>
-        document.getElementById('evaluationForm').addEventListener('submit', function(e) {
+   <script>
+        // Ganti URL ini dengan URL web app Google Apps Script Anda
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzW6nCCDCbZTBzZahvJ7gI6DK84BiMFA1BCwvcGWGKaXt3Az924ZMAN_7qO74w_pgSt/exec";
+        
+        document.getElementById('evaluationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Validasi sederhana
@@ -533,12 +536,78 @@
                 }
             });
             
-            if (isValid) {
-                alert('Penilaian berhasil disimpan!');
-                // Di aplikasi nyata, di sini akan ada kode untuk mengirim data ke server
-                // this.submit();
-            } else {
+            if (!isValid) {
                 alert('Harap lengkapi semua field yang wajib diisi dengan benar!');
+                return;
+            }
+            
+            // Kumpulkan data form
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Proses data ekstrakurikuler
+            const ekstrakurikuler = [];
+            const partisipasi = [];
+            
+            ekstraChecked.forEach(checkbox => {
+                ekstrakurikuler.push(checkbox.value);
+                const partisipasiSelect = checkbox.parentNode.querySelector('.partisipasi-select');
+                partisipasi.push(`${checkbox.value}: ${partisipasiSelect.value}`);
+            });
+            
+            // Tambahkan data ke objek
+            for (let [key, value] of formData.entries()) {
+                if (key === 'ekstrakurikuler') {
+                    // Akan kita tangani secara khusus
+                    continue;
+                }
+                data[key] = value;
+            }
+            
+            // Tambahkan data ekstrakurikuler
+            data.ekstrakurikuler = ekstrakurikuler;
+            data.partisipasi = partisipasi;
+            
+            // Tampilkan loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('submitButton').disabled = true;
+            
+            try {
+                // Kirim data ke Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.result === "success") {
+                    alert('Penilaian berhasil disimpan!');
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Reset tampilan partisipasi select
+                    document.querySelectorAll('.partisipasi-select').forEach(select => {
+                        select.style.display = 'none';
+                        select.removeAttribute('required');
+                    });
+                    
+                    // Scroll ke atas
+                    window.scrollTo(0, 0);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menyimpan data: ' + error.message);
+            } finally {
+                // Sembunyikan loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('submitButton').disabled = false;
             }
         });
         
@@ -591,6 +660,7 @@
     </script>
 </body>
 </html>
+
 
 
 
