@@ -6,6 +6,7 @@
     <title>Form Penilaian Siswa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* CSS yang sama seperti sebelumnya */
         * {
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -39,11 +40,32 @@
             flex-direction: column;
             align-items: center;
         }
-             
-            .logo img {
-            width: 30%; /* Diubah dari 100% agar tidak memenuhi penuh */
-            height: 30%; /* Diubah dari 100% agar tidak memenuhi penuh */
-            object-fit: contain; /* Tetap menggunakan contain agar proporsional */
+        
+        .logo-container {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid white;
+            background-color: #f8f9fa;
+        }
+        
+        .logo img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
             padding: 10px;
         }
         
@@ -51,12 +73,12 @@
             color: #2c3e50;
             margin-bottom: 10px;
             margin-top: 0;
-            font-size: 1.8em; /* Sedikit diperkecil */
+            font-size: 1.8em;
         }
         
         .description {
             color: #7f8c8d;
-            font-size: 1em; /* Sedikit diperkecil */
+            font-size: 1em;
             max-width: 600px;
         }
         
@@ -115,7 +137,6 @@
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
         
-        /* Menghilangkan spinner pada input number */
         input[type="number"] {
             -moz-appearance: textfield;
             max-width: 120px;
@@ -175,7 +196,6 @@
             margin-top: 5px;
         }
         
-        /* Gaya untuk ekstrakurikuler */
         .ekstra-container {
             margin-bottom: 15px;
         }
@@ -206,6 +226,27 @@
             display: none;
         }
         
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         @media (max-width: 768px) {
             .rating-container {
                 flex-direction: column;
@@ -232,16 +273,16 @@
             }
             
             .logo {
-                width: 100px; /* Diperkecil dari 120px untuk mobile */
-                height: 100px; /* Diperkecil dari 120px untuk mobile */
+                width: 100px;
+                height: 100px;
             }
             
             h1 {
-                font-size: 1.5em; /* Diperkecil untuk mobile */
+                font-size: 1.5em;
             }
             
             .description {
-                font-size: 0.9em; /* Diperkecil untuk mobile */
+                font-size: 0.9em;
             }
         }
     </style>
@@ -249,11 +290,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <!-- Logo SMP Negeri 23 Balikpapan di atas tengah -->
             <div class="logo-container">
                 <div class="logo">
-                    <!-- Ganti URL gambar di bawah dengan path gambar logo Anda -->
-                   <img src="img/spenduga.jpg" alt="Logo SMP Negeri 23 Balikpapan">
+                    <img src="img/spenduga.jpg" alt="Logo SMP Negeri 23 Balikpapan">
                 </div>
             </div>
             
@@ -489,14 +528,23 @@
                 </div>
             </div>
             
+            <!-- Loading indicator -->
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Menyimpan data...</p>
+            </div>
+            
             <div class="btn-container">
-                <button type="submit"><i class="fas fa-save"></i> Simpan Penilaian</button>
+                <button type="submit" id="submitButton"><i class="fas fa-save"></i> Simpan Penilaian</button>
             </div>
         </form>
     </div>
 
     <script>
-        document.getElementById('evaluationForm').addEventListener('submit', function(e) {
+        // Ganti URL ini dengan URL web app Google Apps Script Anda
+        const SCRIPT_URL = "https://script.google.com/macros/s/SCRIPT_ID_HERE/exec";
+        
+        document.getElementById('evaluationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Validasi sederhana
@@ -533,12 +581,78 @@
                 }
             });
             
-            if (isValid) {
-                alert('Penilaian berhasil disimpan!');
-                // Di aplikasi nyata, di sini akan ada kode untuk mengirim data ke server
-                // this.submit();
-            } else {
+            if (!isValid) {
                 alert('Harap lengkapi semua field yang wajib diisi dengan benar!');
+                return;
+            }
+            
+            // Kumpulkan data form
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Proses data ekstrakurikuler
+            const ekstrakurikuler = [];
+            const partisipasi = [];
+            
+            ekstraChecked.forEach(checkbox => {
+                ekstrakurikuler.push(checkbox.value);
+                const partisipasiSelect = checkbox.parentNode.querySelector('.partisipasi-select');
+                partisipasi.push(`${checkbox.value}: ${partisipasiSelect.value}`);
+            });
+            
+            // Tambahkan data ke objek
+            for (let [key, value] of formData.entries()) {
+                if (key === 'ekstrakurikuler') {
+                    // Akan kita tangani secara khusus
+                    continue;
+                }
+                data[key] = value;
+            }
+            
+            // Tambahkan data ekstrakurikuler
+            data.ekstrakurikuler = ekstrakurikuler;
+            data.partisipasi = partisipasi;
+            
+            // Tampilkan loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('submitButton').disabled = true;
+            
+            try {
+                // Kirim data ke Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.result === "success") {
+                    alert('Penilaian berhasil disimpan!');
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Reset tampilan partisipasi select
+                    document.querySelectorAll('.partisipasi-select').forEach(select => {
+                        select.style.display = 'none';
+                        select.removeAttribute('required');
+                    });
+                    
+                    // Scroll ke atas
+                    window.scrollTo(0, 0);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menyimpan data: ' + error.message);
+            } finally {
+                // Sembunyikan loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('submitButton').disabled = false;
             }
         });
         
@@ -591,9 +705,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
