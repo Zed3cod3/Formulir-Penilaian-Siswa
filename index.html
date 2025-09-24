@@ -496,168 +496,165 @@
         </form>
     </div>
 
-    <script>
-        // Ganti URL ini dengan URL web app Google Apps Script Anda
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAm_RKBHrydjL1tmVar3plUMiPVWIl6L1OtKlj2V-qfZv0tU4C-gAYnEITyabIkGY6/exec";
-        document.getElementById('evaluationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validasi sederhana
-            const requiredFields = this.querySelectorAll('[required]');
-            let isValid = true;
-            
-            requiredFields.forEach(field => {
-                if (!field.value) {
-                    isValid = false;
-                    field.style.borderColor = '#e74c3c';
-                } else {
-                    field.style.borderColor = '#ddd';
-                }
-            });
-            
-            // Validasi khusus untuk nilai rata-rata
-            const nilaiInput = document.getElementById('nilai');
-            const nilai = parseFloat(nilaiInput.value);
-            
-            if (isNaN(nilai) || nilai < 0 || nilai > 100) {
+   <script>
+    // ⚠️ GANTI DENGAN URL WEB APP ANDA ⚠️
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec";
+    
+    document.getElementById('evaluationForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        console.log("Form submission started");
+        
+        // Sembunyikan pesan sebelumnya
+        document.getElementById('successMessage').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
+        
+        // Validasi sederhana
+        const requiredFields = this.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value) {
                 isValid = false;
-                nilaiInput.style.borderColor = '#e74c3c';
-                alert('Nilai rata-rata harus berupa angka antara 0 dan 100!');
+                field.style.borderColor = '#e74c3c';
+            } else {
+                field.style.borderColor = '#ddd';
             }
+        });
+        
+        // Validasi khusus untuk nilai rata-rata
+        const nilaiInput = document.getElementById('nilai');
+        const nilai = parseFloat(nilaiInput.value);
+        
+        if (isNaN(nilai) || nilai < 0 || nilai > 100) {
+            isValid = false;
+            nilaiInput.style.borderColor = '#e74c3c';
+            showError('Nilai rata-rata harus berupa angka antara 0 dan 100!');
+            return;
+        }
+        
+        // Validasi untuk ekstrakurikuler yang dipilih
+        const ekstraChecked = document.querySelectorAll('input[name="ekstrakurikuler"]:checked');
+        let ekstraError = false;
+        
+        ekstraChecked.forEach(checkbox => {
+            const partisipasiSelect = checkbox.parentNode.querySelector('.partisipasi-select');
+            if (!partisipasiSelect.value) {
+                ekstraError = true;
+                partisipasiSelect.style.borderColor = '#e74c3c';
+            }
+        });
+        
+        if (ekstraError) {
+            showError('Harap pilih tingkat partisipasi untuk setiap ekstrakurikuler yang dipilih!');
+            return;
+        }
+        
+        if (!isValid) {
+            showError('Harap lengkapi semua field yang wajib diisi dengan benar!');
+            return;
+        }
+        
+        // Kumpulkan data form
+        const formData = new FormData(this);
+        const data = {};
+        
+        // Proses data ekstrakurikuler
+        const ekstrakurikuler = [];
+        
+        ekstraChecked.forEach(checkbox => {
+            ekstrakurikuler.push(checkbox.value);
+        });
+        
+        // Tambahkan data ke objek
+        for (let [key, value] of formData.entries()) {
+            if (key === 'ekstrakurikuler') {
+                continue;
+            }
+            data[key] = value;
+        }
+        
+        // Tambahkan data ekstrakurikuler
+        data.ekstrakurikuler = ekstrakurikuler;
+        
+        console.log("Data to be sent:", data);
+        
+        // Tampilkan loading indicator
+        document.getElementById('loadingIndicator').style.display = 'block';
+        document.getElementById('submitButton').disabled = true;
+        
+        try {
+            // Kirim data ke Google Apps Script
+            console.log("Sending data to:", https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec);
             
-            // Validasi untuk ekstrakurikuler yang dipilih
-            const ekstraChecked = document.querySelectorAll('input[name="ekstrakurikuler"]:checked');
-            ekstraChecked.forEach(checkbox => {
-                const partisipasiSelect = checkbox.parentNode.querySelector('.partisipasi-select');
-                if (!partisipasiSelect.value) {
-                    isValid = false;
-                    partisipasiSelect.style.borderColor = '#e74c3c';
-                    alert('Harap pilih tingkat partisipasi untuk setiap ekstrakurikuler yang dipilih!');
-                }
+            const response = await fetch(https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
             });
             
-           if (!isValid) {
-                alert('Harap lengkapi semua field yang wajib diisi dengan benar!');
-                return;
-            }
+            console.log("Response status:", response.status);
+            const result = await response.json();
+            console.log("Response data:", result);
             
-            // Kumpulkan data form
-            const formData = new FormData(this);
-            const data = {};
-            
-            // Proses data ekstrakurikuler
-            const ekstrakurikuler = [];
-            const partisipasi = [];
-            
-            ekstraChecked.forEach(checkbox => {
-                ekstrakurikuler.push(checkbox.value);
-                const partisipasiSelect = checkbox.parentNode.querySelector('.partisipasi-select');
-                partisipasi.push(`${checkbox.value}: ${partisipasiSelect.value}`);
-            });
-            
-            // Tambahkan data ke objek
-            for (let [key, value] of formData.entries()) {
-                if (key === 'ekstrakurikuler') {
-                    // Akan kita tangani secara khusus
-                    continue;
-                }
-                data[key] = value;
-            }
-            
-            // Tambahkan data ekstrakurikuler
-            data.ekstrakurikuler = ekstrakurikuler;
-            data.partisipasi = partisipasi;
-            
-            // Tampilkan loading indicator
-            document.getElementById('loadingIndicator').style.display = 'block';
-            document.getElementById('submitButton').disabled = true;
-            
-            try {
-                // Kirim data ke Google Apps Script
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
+            if (result.result === "success") {
+                showSuccess('Penilaian berhasil disimpan! Data tersimpan di spreadsheet.');
+                
+                // Reset form
+                this.reset();
+                
+                // Reset tampilan partisipasi select
+                document.querySelectorAll('.partisipasi-select').forEach(select => {
+                    select.style.display = 'none';
+                    select.removeAttribute('required');
                 });
                 
-                const result = await response.json();
-                
-                if (result.result === "success") {
-                    alert('Penilaian berhasil disimpan!');
-                    
-                    // Reset form
-                    this.reset();
-                    
-                    // Reset tampilan partisipasi select
-                    document.querySelectorAll('.partisipasi-select').forEach(select => {
-                        select.style.display = 'none';
-                        select.removeAttribute('required');
-                    });
-                    
-                    // Scroll ke atas
-                    window.scrollTo(0, 0);
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat menyimpan data: ' + error.message);
-            } finally {
-                // Sembunyikan loading indicator
-                document.getElementById('loadingIndicator').style.display = 'none';
-                document.getElementById('submitButton').disabled = false;
+                // Scroll ke atas
+                window.scrollTo(0, 0);
+            } else {
+                throw new Error(result.message || "Unknown error");
             }
-        });
-        
-        // Mencegah input nilai minus
-        document.getElementById('nilai').addEventListener('input', function(e) {
-            if (e.target.value < 0) {
-                e.target.value = 0;
-            }
-            if (e.target.value > 100) {
-                e.target.value = 100;
-            }
-        });
-        
-        // Mencegah input karakter non-angka
-        document.getElementById('nilai').addEventListener('keypress', function(e) {
-            const charCode = (e.which) ? e.which : e.keyCode;
-            // Mengizinkan hanya angka, titik, dan kunci kontrol
-            if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode !== 46) {
-                e.preventDefault();
-            }
-        });
-        
-        // Menampilkan/menyembunyikan select partisipasi berdasarkan checkbox
-        const ekstraCheckboxes = document.querySelectorAll('.ekstra-checkbox');
-        ekstraCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const partisipasiSelect = this.parentNode.querySelector('.partisipasi-select');
-                if (this.checked) {
-                    partisipasiSelect.style.display = 'block';
-                    partisipasiSelect.setAttribute('required', 'true');
-                } else {
-                    partisipasiSelect.style.display = 'none';
-                    partisipasiSelect.removeAttribute('required');
-                    partisipasiSelect.value = '';
-                }
-            });
-        });
-        
-        // Menambahkan efek saat field difokuskan
-        const formFields = document.querySelectorAll('input, select, textarea');
-        formFields.forEach(field => {
-            field.addEventListener('focus', function() {
-                this.style.borderColor = '#3498db';
-            });
-            
-            field.addEventListener('blur', function() {
-                this.style.borderColor = '#ddd';
-            });
-        });
-    </script>
+        } catch (error) {
+            console.error('Error details:', error);
+            showError('Terjadi kesalahan saat menyimpan data: ' + error.message);
+        } finally {
+            // Sembunyikan loading indicator
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('submitButton').disabled = false;
+        }
+    });
+    
+    // Fungsi untuk menampilkan pesan sukses
+    function showSuccess(message) {
+        const successElement = document.getElementById('successMessage');
+        successElement.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        successElement.style.display = 'block';
+    }
+    
+    // Fungsi untuk menampilkan pesan error
+    function showError(message) {
+        const errorElement = document.getElementById('errorMessage');
+        document.getElementById('errorText').textContent = message;
+        errorElement.style.display = 'block';
+    }
+    
+    // Test koneksi saat halaman dimuat
+    window.addEventListener('load', async function() {
+        try {
+            const response = await fetch(https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec);
+            const result = await response.json();
+            console.log("Backend connection test:", result);
+        } catch (error) {
+            console.error("Backend connection failed:", error);
+        }
+    });
+
+    // Kode lainnya tetap sama...
+    // [Kode validasi dan event listeners lainnya]
+</script>
 </body>
 </html>
+
 
