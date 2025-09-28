@@ -8,6 +8,8 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
@@ -36,23 +38,34 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 2px solid #3498db;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
-            
-                
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
         .logo img {
-            width: 30%;
-            height: 30%;
+            max-width: 80%;
+            max-height: 80%;
             object-fit: contain;
-            padding: 10px;
         }
         
         h1 {
             color: #2c3e50;
             margin-bottom: 10px;
-            margin-top: 0;
             font-size: 1.8em;
         }
         
@@ -60,6 +73,7 @@
             color: #7f8c8d;
             font-size: 1em;
             max-width: 600px;
+            margin: 0 auto;
         }
         
         .section {
@@ -74,7 +88,7 @@
         .section-title {
             font-size: 1.3em;
             color: #3498db;
-            margin-top: 0;
+            margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid #e0e0e0;
             display: flex;
@@ -117,7 +131,6 @@
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
         
-        /* Menghilangkan spinner pada input number */
         input[type="number"] {
             -moz-appearance: textfield;
             max-width: 120px;
@@ -184,7 +197,6 @@
             margin-top: 5px;
         }
         
-        /* Gaya untuk ekstrakurikuler */
         .ekstra-container {
             margin-bottom: 15px;
         }
@@ -209,7 +221,6 @@
             font-weight: 500;
         }
         
-        /* Notifikasi */
         .notification {
             padding: 15px 20px;
             margin-bottom: 20px;
@@ -230,7 +241,6 @@
             border: 1px solid #f5c6cb;
         }
         
-        /* Loading Indicator di tengah halaman */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -318,11 +328,9 @@
     
     <div class="container">
         <div class="header">
-            <!-- Logo SMP Negeri 23 Balikpapan di atas tengah -->
             <div class="logo-container">
                 <div class="logo">
-                    <!-- Ganti URL gambar di bawah dengan path gambar logo Anda -->
-                   <img src="img/spenduga.jpg" alt="Logo SMP Negeri 23 Balikpapan">
+                    <img src="https://via.placeholder.com/100x100/3498db/ffffff?text=SMPN23" alt="Logo SMP Negeri 23 Balikpapan">
                 </div>
             </div>
             
@@ -609,20 +617,43 @@
             document.getElementById('submitButton').disabled = true;
             
             try {
-                // Kirim data ke Google Apps Script
+                // Kirim data ke Google Apps Script dengan timeout
                 console.log("Sending data to:", SCRIPT_URL);
+                
+                // Gunakan AbortController untuk timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 detik timeout
                 
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(data),
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
+                
                 console.log("Response status:", response.status);
-                const result = await response.json();
-                console.log("Response data:", result);
+                
+                // Handle response
+                const responseText = await response.text();
+                console.log("Raw response:", responseText);
+                
+                if (!responseText) {
+                    throw new Error('Empty response from server');
+                }
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    throw new Error('Invalid JSON response from server');
+                }
+                
+                console.log("Parsed response data:", result);
                 
                 if (result.result === "success") {
                     showSuccess('Penilaian berhasil disimpan! Data tersimpan di spreadsheet.');
@@ -634,11 +665,25 @@
                     window.scrollTo(0, 0);
                     
                 } else {
-                    throw new Error(result.message || "Unknown error");
+                    throw new Error(result.message || "Unknown error from server");
                 }
             } catch (error) {
                 console.error('Error details:', error);
-                showError('Terjadi kesalahan saat menyimpan data: ' + error.message);
+                
+                // Berikan pesan error yang lebih spesifik
+                let errorMessage = 'Terjadi kesalahan saat menyimpan data: ';
+                
+                if (error.name === 'AbortError') {
+                    errorMessage += 'Timeout - server tidak merespons dalam waktu 30 detik.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage += 'Gagal terhubung ke server. Periksa koneksi internet Anda dan pastikan URL Web App benar.';
+                } else if (error.message.includes('NetworkError')) {
+                    errorMessage += 'Kesalahan jaringan. Periksa koneksi internet Anda.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showError(errorMessage);
             } finally {
                 // Sembunyikan loading indicator
                 document.getElementById('loadingIndicator').style.display = 'none';
@@ -651,6 +696,11 @@
             const successElement = document.getElementById('successMessage');
             document.getElementById('successText').textContent = message;
             successElement.style.display = 'block';
+            
+            // Auto hide success message after 5 seconds
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 5000);
         }
         
         // Fungsi untuk menampilkan pesan error
@@ -663,11 +713,24 @@
         // Test koneksi saat halaman dimuat
         window.addEventListener('load', async function() {
             try {
+                console.log("Testing connection to:", SCRIPT_URL);
                 const response = await fetch(SCRIPT_URL);
-                const result = await response.json();
+                const responseText = await response.text();
+                console.log("Connection test response:", responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    console.error("Failed to parse test response:", e);
+                    showError('Koneksi ke server berhasil tetapi respons tidak valid. Periksa konfigurasi Google Apps Script.');
+                    return;
+                }
+                
                 console.log("Backend connection test:", result);
             } catch (error) {
                 console.error("Backend connection failed:", error);
+                showError('Gagal terhubung ke server. Pastikan URL Web App benar dan koneksi internet stabil.');
             }
         });
     </script>
