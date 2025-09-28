@@ -28,6 +28,7 @@
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
         }
         
         .header {
@@ -42,9 +43,9 @@
             
                 
         .logo img {
-            width: 30%; /* Diubah dari 100% agar tidak memenuhi penuh */
-            height: 30%; /* Diubah dari 100% agar tidak memenuhi penuh */
-            object-fit: contain; /* Tetap menggunakan contain agar proporsional */
+            width: 30%;
+            height: 30%;
+            object-fit: contain;
             padding: 10px;
         }
         
@@ -52,12 +53,12 @@
             color: #2c3e50;
             margin-bottom: 10px;
             margin-top: 0;
-            font-size: 1.8em; /* Sedikit diperkecil */
+            font-size: 1.8em;
         }
         
         .description {
             color: #7f8c8d;
-            font-size: 1em; /* Sedikit diperkecil */
+            font-size: 1em;
             max-width: 600px;
         }
         
@@ -166,6 +167,13 @@
             box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
         }
         
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
         .required {
             color: #e74c3c;
         }
@@ -201,10 +209,68 @@
             font-weight: 500;
         }
         
-        .partisipasi-select {
-            width: 150px;
-            margin-left: 10px;
+        /* Notifikasi */
+        .notification {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
             display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Loading Indicator di tengah halaman */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 300px;
+            width: 90%;
+        }
+        
+        .loading-content i {
+            font-size: 40px;
+            color: #3498db;
+            margin-bottom: 15px;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-content p {
+            margin: 0;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         @media (max-width: 768px) {
@@ -226,28 +292,30 @@
                 align-items: flex-start;
             }
             
-            .partisipasi-select {
-                width: 100%;
-                margin-left: 0;
-                margin-top: 10px;
-            }
-            
             .logo {
-                width: 100px; /* Diperkecil dari 120px untuk mobile */
-                height: 100px; /* Diperkecil dari 120px untuk mobile */
+                width: 100px;
+                height: 100px;
             }
             
             h1 {
-                font-size: 1.5em; /* Diperkecil untuk mobile */
+                font-size: 1.5em;
             }
             
             .description {
-                font-size: 0.9em; /* Diperkecil untuk mobile */
+                font-size: 0.9em;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay di tengah halaman -->
+    <div id="loadingIndicator" class="loading-overlay">
+        <div class="loading-content">
+            <i class="fas fa-spinner"></i>
+            <p>Menyimpan data, harap tunggu...</p>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="header">
             <!-- Logo SMP Negeri 23 Balikpapan di atas tengah -->
@@ -260,6 +328,15 @@
             
             <h1>Form Penilaian Siswa</h1>
             <p class="description">Formulir penilaian perkembangan siswa SMP Negeri 23 Balikpapan</p>
+        </div>
+        
+        <!-- Notifikasi -->
+        <div id="successMessage" class="notification success">
+            <i class="fas fa-check-circle"></i> <span id="successText">Penilaian berhasil disimpan!</span>
+        </div>
+        
+        <div id="errorMessage" class="notification error">
+            <i class="fas fa-exclamation-circle"></i> <span id="errorText">Terjadi kesalahan!</span>
         </div>
         
         <form id="evaluationForm">
@@ -312,8 +389,8 @@
                     <label for="tahunAjaran">Tahun Ajaran: <span class="required">*</span></label>
                      <select id="tahunAjaran" name="tahunAjaran" required>
                         <option value="">Pilih Tahun Ajaran</option>
-                        <option value="1">2024/2025</option>
-                        <option value="2">2025/2026</option>
+                        <option value="2024/2025">2024/2025</option>
+                        <option value="2025/2026">2025/2026</option>
                     </select>
                 </div>
             </div>
@@ -323,7 +400,7 @@
                 <h2 class="section-title"><i class="fas fa-book"></i> Perkembangan Akademik</h2>
                 <div class="form-group">
                     <label for="nilai">Nilai Rata-rata: <span class="required">*</span></label>
-                    <input type="number" id="nilai" name="nilai" step="0.01" placeholder="0.00 - 100.00" required>
+                    <input type="number" id="nilai" name="nilai" min="0" max="100" step="0.01" placeholder="0.00 - 100.00" required>
                     <p class="input-hint">Masukkan nilai antara 0.00 dan 100.00</p>
                 </div>
                 <div class="form-group">
@@ -415,67 +492,31 @@
                         <div class="ekstra-item">
                             <input type="checkbox" id="ekstra1" class="ekstra-checkbox" name="ekstrakurikuler" value="Pramuka">
                             <label for="ekstra1" class="ekstra-label">Pramuka</label>
-                            <select class="partisipasi-select" name="partisipasi_pramuka">
-                                <option value="">Tingkat Partisipasi</option>
-                                <option value="Aktif">Aktif</option>
-                                <option value="Cukup Aktif">Cukup Aktif</option>
-                                <option value="Kurang Aktif">Kurang Aktif</option>
-                            </select>
                         </div>
                         
                         <div class="ekstra-item">
                             <input type="checkbox" id="ekstra2" class="ekstra-checkbox" name="ekstrakurikuler" value="PMR">
                             <label for="ekstra2" class="ekstra-label">PMR</label>
-                            <select class="partisipasi-select" name="partisipasi_pmr">
-                                <option value="">Tingkat Partisipasi</option>
-                                <option value="Aktif">Aktif</option>
-                                <option value="Cukup Aktif">Cukup Aktif</option>
-                                <option value="Kurang Aktif">Kurang Aktif</option>
-                            </select>
                         </div>
                         
                         <div class="ekstra-item">
                             <input type="checkbox" id="ekstra3" class="ekstra-checkbox" name="ekstrakurikuler" value="Basket">
                             <label for="ekstra3" class="ekstra-label">Basket</label>
-                            <select class="partisipasi-select" name="partisipasi_basket">
-                                <option value="">Tingkat Partisipasi</option>
-                                <option value="Aktif">Aktif</option>
-                                <option value="Cukup Aktif">Cukup Aktif</option>
-                                <option value="Kurang Aktif">Kurang Aktif</option>
-                            </select>
                         </div>
                         
                         <div class="ekstra-item">
                             <input type="checkbox" id="ekstra4" class="ekstra-checkbox" name="ekstrakurikuler" value="Sepak Bola">
                             <label for="ekstra4" class="ekstra-label">Sepak Bola</label>
-                            <select class="partisipasi-select" name="partisipasi_sepakbola">
-                                <option value="">Tingkat Partisipasi</option>
-                                <option value="Aktif">Aktif</option>
-                                <option value="Cukup Aktif">Cukup Aktif</option>
-                                <option value="Kurang Aktif">Kurang Aktif</option>
-                            </select>
                         </div>
                         
                         <div class="ekstra-item">
                             <input type="checkbox" id="ekstra5" class="ekstra-checkbox" name="ekstrakurikuler" value="Voli">
                             <label for="ekstra5" class="ekstra-label">Voli</label>
-                            <select class="partisipasi-select" name="partisipasi_voli">
-                                <option value="">Tingkat Partisipasi</option>
-                                <option value="Aktif">Aktif</option>
-                                <option value="Cukup Aktif">Cukup Aktif</option>
-                                <option value="Kurang Aktif">Kurang Aktif</option>
-                            </select>
                         </div>
                         
                         <div class="ekstra-item">
                             <input type="checkbox" id="ekstra6" class="ekstra-checkbox" name="ekstrakurikuler" value="Paduan Suara">
                             <label for="ekstra6" class="ekstra-label">Paduan Suara</label>
-                            <select class="partisipasi-select" name="partisipasi_paduansuara">
-                                <option value="">Tingkat Partisipasi</option>
-                                <option value="Aktif">Aktif</option>
-                                <option value="Cukup Aktif">Cukup Aktif</option>
-                                <option value="Kurang Aktif">Kurang Aktif</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -491,170 +532,144 @@
             </div>
             
             <div class="btn-container">
-                <button type="submit"><i class="fas fa-save"></i> Simpan Penilaian</button>
+                <button type="submit" id="submitButton"><i class="fas fa-save"></i> Simpan Penilaian</button>
             </div>
         </form>
     </div>
 
-   <script>
-    // ⚠️ GANTI DENGAN URL WEB APP ANDA ⚠️
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec";
-    
-    document.getElementById('evaluationForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+    <script>
+        // ⚠️ GANTI DENGAN URL WEB APP ANDA ⚠️
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec";
         
-        console.log("Form submission started");
-        
-        // Sembunyikan pesan sebelumnya
-        document.getElementById('successMessage').style.display = 'none';
-        document.getElementById('errorMessage').style.display = 'none';
-        
-        // Validasi sederhana
-        const requiredFields = this.querySelectorAll('[required]');
-        let isValid = true;
-        
-        requiredFields.forEach(field => {
-            if (!field.value) {
-                isValid = false;
-                field.style.borderColor = '#e74c3c';
-            } else {
-                field.style.borderColor = '#ddd';
-            }
-        });
-        
-        // Validasi khusus untuk nilai rata-rata
-        const nilaiInput = document.getElementById('nilai');
-        const nilai = parseFloat(nilaiInput.value);
-        
-        if (isNaN(nilai) || nilai < 0 || nilai > 100) {
-            isValid = false;
-            nilaiInput.style.borderColor = '#e74c3c';
-            showError('Nilai rata-rata harus berupa angka antara 0 dan 100!');
-            return;
-        }
-        
-        // Validasi untuk ekstrakurikuler yang dipilih
-        const ekstraChecked = document.querySelectorAll('input[name="ekstrakurikuler"]:checked');
-        let ekstraError = false;
-        
-        ekstraChecked.forEach(checkbox => {
-            const partisipasiSelect = checkbox.parentNode.querySelector('.partisipasi-select');
-            if (!partisipasiSelect.value) {
-                ekstraError = true;
-                partisipasiSelect.style.borderColor = '#e74c3c';
-            }
-        });
-        
-        if (ekstraError) {
-            showError('Harap pilih tingkat partisipasi untuk setiap ekstrakurikuler yang dipilih!');
-            return;
-        }
-        
-        if (!isValid) {
-            showError('Harap lengkapi semua field yang wajib diisi dengan benar!');
-            return;
-        }
-        
-        // Kumpulkan data form
-        const formData = new FormData(this);
-        const data = {};
-        
-        // Proses data ekstrakurikuler
-        const ekstrakurikuler = [];
-        
-        ekstraChecked.forEach(checkbox => {
-            ekstrakurikuler.push(checkbox.value);
-        });
-        
-        // Tambahkan data ke objek
-        for (let [key, value] of formData.entries()) {
-            if (key === 'ekstrakurikuler') {
-                continue;
-            }
-            data[key] = value;
-        }
-        
-        // Tambahkan data ekstrakurikuler
-        data.ekstrakurikuler = ekstrakurikuler;
-        
-        console.log("Data to be sent:", data);
-        
-        // Tampilkan loading indicator
-        document.getElementById('loadingIndicator').style.display = 'block';
-        document.getElementById('submitButton').disabled = true;
-        
-        try {
-            // Kirim data ke Google Apps Script
-            console.log("Sending data to:", https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec);
+        document.getElementById('evaluationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            const response = await fetch(https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
+            console.log("Form submission started");
+            
+            // Sembunyikan pesan sebelumnya
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Validasi sederhana
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value) {
+                    isValid = false;
+                    field.style.borderColor = '#e74c3c';
+                } else {
+                    field.style.borderColor = '#ddd';
+                }
             });
             
-            console.log("Response status:", response.status);
-            const result = await response.json();
-            console.log("Response data:", result);
+            // Validasi khusus untuk nilai rata-rata
+            const nilaiInput = document.getElementById('nilai');
+            const nilai = parseFloat(nilaiInput.value);
             
-            if (result.result === "success") {
-                showSuccess('Penilaian berhasil disimpan! Data tersimpan di spreadsheet.');
+            if (isNaN(nilai) || nilai < 0 || nilai > 100) {
+                isValid = false;
+                nilaiInput.style.borderColor = '#e74c3c';
+                showError('Nilai rata-rata harus berupa angka antara 0 dan 100!');
+                return;
+            }
+            
+            if (!isValid) {
+                showError('Harap lengkapi semua field yang wajib diisi dengan benar!');
+                return;
+            }
+            
+            // Kumpulkan data form
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Proses data ekstrakurikuler
+            const ekstraChecked = document.querySelectorAll('input[name="ekstrakurikuler"]:checked');
+            const ekstrakurikuler = [];
+            
+            ekstraChecked.forEach(checkbox => {
+                ekstrakurikuler.push(checkbox.value);
+            });
+            
+            // Tambahkan data ke objek
+            for (let [key, value] of formData.entries()) {
+                if (key === 'ekstrakurikuler') {
+                    continue;
+                }
+                data[key] = value;
+            }
+            
+            // Tambahkan data ekstrakurikuler (dipisahkan koma)
+            data.ekstrakurikuler = ekstrakurikuler.join(', ');
+            
+            console.log("Data to be sent:", data);
+            
+            // Tampilkan loading indicator di tengah halaman
+            document.getElementById('loadingIndicator').style.display = 'flex';
+            document.getElementById('submitButton').disabled = true;
+            
+            try {
+                // Kirim data ke Google Apps Script
+                console.log("Sending data to:", SCRIPT_URL);
                 
-                // Reset form
-                this.reset();
-                
-                // Reset tampilan partisipasi select
-                document.querySelectorAll('.partisipasi-select').forEach(select => {
-                    select.style.display = 'none';
-                    select.removeAttribute('required');
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
                 });
                 
-                // Scroll ke atas
-                window.scrollTo(0, 0);
-            } else {
-                throw new Error(result.message || "Unknown error");
+                console.log("Response status:", response.status);
+                const result = await response.json();
+                console.log("Response data:", result);
+                
+                if (result.result === "success") {
+                    showSuccess('Penilaian berhasil disimpan! Data tersimpan di spreadsheet.');
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Scroll ke atas
+                    window.scrollTo(0, 0);
+                    
+                } else {
+                    throw new Error(result.message || "Unknown error");
+                }
+            } catch (error) {
+                console.error('Error details:', error);
+                showError('Terjadi kesalahan saat menyimpan data: ' + error.message);
+            } finally {
+                // Sembunyikan loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('submitButton').disabled = false;
             }
-        } catch (error) {
-            console.error('Error details:', error);
-            showError('Terjadi kesalahan saat menyimpan data: ' + error.message);
-        } finally {
-            // Sembunyikan loading indicator
-            document.getElementById('loadingIndicator').style.display = 'none';
-            document.getElementById('submitButton').disabled = false;
+        });
+        
+        // Fungsi untuk menampilkan pesan sukses
+        function showSuccess(message) {
+            const successElement = document.getElementById('successMessage');
+            document.getElementById('successText').textContent = message;
+            successElement.style.display = 'block';
         }
-    });
-    
-    // Fungsi untuk menampilkan pesan sukses
-    function showSuccess(message) {
-        const successElement = document.getElementById('successMessage');
-        successElement.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-        successElement.style.display = 'block';
-    }
-    
-    // Fungsi untuk menampilkan pesan error
-    function showError(message) {
-        const errorElement = document.getElementById('errorMessage');
-        document.getElementById('errorText').textContent = message;
-        errorElement.style.display = 'block';
-    }
-    
-    // Test koneksi saat halaman dimuat
-    window.addEventListener('load', async function() {
-        try {
-            const response = await fetch(https://script.google.com/macros/s/AKfycbyqaqH5V02BLGm32kx61B4ZTAymsIAaPNJq9qHpIdVKoGseHQYibiFmItBoBC9ZEM0ctQ/exec);
-            const result = await response.json();
-            console.log("Backend connection test:", result);
-        } catch (error) {
-            console.error("Backend connection failed:", error);
+        
+        // Fungsi untuk menampilkan pesan error
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            document.getElementById('errorText').textContent = message;
+            errorElement.style.display = 'block';
         }
-    });
-
-    // Kode lainnya tetap sama...
-    // [Kode validasi dan event listeners lainnya]
-</script>
+        
+        // Test koneksi saat halaman dimuat
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const result = await response.json();
+                console.log("Backend connection test:", result);
+            } catch (error) {
+                console.error("Backend connection failed:", error);
+            }
+        });
+    </script>
 </body>
 </html>
-
-
